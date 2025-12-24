@@ -1,7 +1,50 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::os::unix::fs::MetadataExt;
+use std::path::Path;
+
+const EXTENSIONS: [&str; 3] = ["jpg", "jpeg", "png"];
+
+#[derive(Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+struct File {
+    path: String,
+    size: u64,
+}
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn get_images(path: String) -> Result<Vec<File>, String> {
+    let path = Path::new(&path);
+    if !path.exists() || !path.is_dir() {
+        return Err("Invalid directory".to_string());
+    }
+
+    let Ok(entries) = fs::read_dir(path) else {
+        return Err(format!("Failed to read directory {}", path.display()));
+    };
+
+    let mut images = Vec::new();
+    for entry in entries.flatten() {
+        let entry = entry.path();
+        if !entry.is_file() {
+            continue;
+        }
+        let Ok(metadata) = entry.metadata() else {
+            continue;
+        };
+        let Some(extension) = entry.extension() else {
+            continue;
+        };
+
+        if EXTENSIONS.contains(&extension.to_str().unwrap()) {
+            images.push(File {
+                path: entry.to_string_lossy().to_string(),
+                size: metadata.size(),
+            })
+        }
+    }
+
+    images.sort();
+    Ok(images)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -11,7 +54,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![get_images])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
