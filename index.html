@@ -19,7 +19,7 @@
       --button-border: 1px solid color-mix(in srgb, CanvasText 5%, transparent);
       --button-hover-background: color-mix(in srgb, CanvasText 15%, transparent);
       --button-danger-color: white;
-      --button-danger-background: oklch(54% 0.22 29 / 80%);
+      --button-danger-background: oklch(47% 0.19 29 / 100%);
       --button-danger-hover-background: oklch(61% 0.22 29 / 100%);
     }
 
@@ -131,7 +131,7 @@
         align-items: center;
         justify-content: center;
         scroll-snap-align: start;
-        transition: all 0.3s ease-in-out;
+        transition: background 0.3s ease-in-out;
       }
 
       .image img {
@@ -139,6 +139,7 @@
         max-height: 100%;
         margin: 1rem;
         object-fit: contain;
+        transition: opacity 0.3s ease-in-out;
       }
 
       .image.discard {

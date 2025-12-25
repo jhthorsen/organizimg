@@ -1,7 +1,7 @@
 import {convertFileSrc} from '@tauri-apps/api/core'
 import {getCurrentWindow} from '@tauri-apps/api/window'
 import {invoke} from '@tauri-apps/api/core'
-import {open} from '@tauri-apps/plugin-dialog'
+import {message, open} from '@tauri-apps/plugin-dialog'
 import {restoreStateCurrent, saveWindowState, StateFlags} from '@tauri-apps/plugin-window-state'
 
 restoreStateCurrent(StateFlags.ALL)
@@ -22,7 +22,6 @@ type View = {
 
 const $ = (p: Document | HTMLElement, sel: string): HTMLElement | null => p.querySelector(sel)
 const $main = $(document, 'main')!
-const $trashButton = $(document, 'button[name=trash]')! as HTMLButtonElement
 
 const view: View = {
   imageObserver: new IntersectionObserver(onImageIsVisible, {root: $main, threshold: 0.1}),
@@ -31,43 +30,9 @@ const view: View = {
   $visibleImage: null,
 }
 
-$trashButton.addEventListener(
-  'click',
-  async () => {
-    try {
-      for (const $image of $main.querySelectorAll<HTMLInputElement>('.image.discard')) {
-        await invoke('trash_image', {path: $image.dataset.path})
-        $image.remove()
-      }
-    } catch (err) {
-      displayText(`${err}`)
-    }
-
-    $trashButton.disabled = $main.querySelectorAll('.image.discard').length === 0
-  },
-)
-
-$(document, 'button[name=open]')!.addEventListener(
-  'click',
-  async () => {
-    const path = await open({
-      directory: true,
-      multiple: false,
-      title: 'Select a directory',
-    })
-
-    $(document, '#title .path')!.textContent = `${path}`
-    view.path = path
-    if (!path) return
-
-    try {
-      const images: File[] = await invoke('get_images', {path})
-      displayImages(images)
-    } catch (err) {
-      displayText(`${path}: ${err}`)
-    }
-  },
-)
+window.addEventListener('keydown', onKeyDown)
+$(document, 'button[name=trash]')!.addEventListener('click', trashImages)
+$(document, 'button[name=open]')!.addEventListener('click', openDirectory)
 
 function displayImages(images: File[]) {
   view.$images = []
@@ -83,17 +48,6 @@ function displayImages(images: File[]) {
     $image.dataset.src = convertFileSrc(image.path)
     $image.className = 'image'
     $image.innerText = image.path.split('/').pop() || ''
-
-    $image.addEventListener('wheel', (evt) => {
-      if (evt.deltaY > 16) {
-        view.$visibleImage?.classList.add('discard')
-        $trashButton.disabled = $main.querySelectorAll('.image.discard').length === 0
-      } else if (evt.deltaY < -16) {
-        view.$visibleImage?.classList.remove('discard')
-        $trashButton.disabled = $main.querySelectorAll('.image.discard').length === 0
-      }
-    }, {passive: true})
-
     $main.appendChild($image)
     view.$images.push($image)
     view.imageObserver.observe($image)
@@ -137,4 +91,78 @@ function onImageIsVisible(entries: IntersectionObserverEntry[]) {
 
     break
   }
+}
+
+function onKeyDown(evt: KeyboardEvent) {
+  if (evt.key === 'ArrowRight' || evt.key === 'l') {
+    const idx = view.$images.indexOf(view.$visibleImage as HTMLElement)
+    view.$images[idx + 1]?.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'start'})
+  } else if (evt.key === 'ArrowLeft' || evt.key === 'h') {
+    const idx = view.$images.indexOf(view.$visibleImage as HTMLElement)
+    view.$images[idx - 1]?.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'start'})
+  } else if ((evt.ctrlKey || evt.metaKey) && evt.key === 'o') {
+    openDirectory()
+  } else if (evt.key === 'o') {
+    openDirectory()
+  } else if (evt.key === 'Backspace' || evt.key === 'd') {
+    trashImages()
+  } else if (evt.key === 'ArrowDown' || evt.key === 'j') {
+    view.$visibleImage?.classList.add('discard')
+    toggleTrashButtonDisabled()
+  } else if (evt.key === 'ArrowUp' || evt.key === 'k') {
+    view.$visibleImage?.classList.remove('discard')
+    toggleTrashButtonDisabled()
+  } else {
+    return
+  }
+
+  evt.preventDefault()
+}
+
+async function openDirectory() {
+  const path = await open({
+    directory: true,
+    multiple: false,
+    title: 'Select a directory',
+  })
+
+  view.path = path ?? ''
+  $(document, '#title .path')!.textContent = `${view.path}`
+  if (!path) return
+
+  try {
+    const images: File[] = await invoke('get_images', {path})
+    displayImages(images)
+  } catch (err) {
+    displayText(`${path}: ${err}`)
+  }
+}
+
+function toggleTrashButtonDisabled() {
+  const $btn = $(document, 'button[name=trash]')! as HTMLButtonElement
+  $btn.disabled = $main.querySelectorAll('.image.discard').length === 0
+}
+
+async function trashImages() {
+  const $discard = $main.querySelectorAll<HTMLInputElement>('.image.discard')
+  if ($discard.length === 0) return
+
+  const answer = await message(`Delete ${$discard.length} images?`, {
+    title: 'Confirm Deletion',
+    kind: 'error',
+    buttons: 'OkCancel',
+  })
+
+  if (answer.toLowerCase() !== 'ok') return
+
+  try {
+    for (const $image of $discard) {
+      await invoke('trash_image', {path: $image.dataset.path})
+      $image.remove()
+    }
+  } catch (err) {
+    displayText(`${err}`)
+  }
+
+  toggleTrashButtonDisabled()
 }
