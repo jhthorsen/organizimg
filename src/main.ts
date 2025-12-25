@@ -1,4 +1,11 @@
-import { invoke } from "@tauri-apps/api/core";
+import {getCurrentWindow} from '@tauri-apps/api/window'
+import {invoke} from '@tauri-apps/api/core'
+import {restoreStateCurrent, saveWindowState, StateFlags} from '@tauri-apps/plugin-window-state'
+
+restoreStateCurrent(StateFlags.ALL)
+getCurrentWindow().onCloseRequested(() => saveWindowState(StateFlags.ALL))
+getCurrentWindow().onMoved(() => saveWindowState(StateFlags.ALL))
+getCurrentWindow().onResized(() => saveWindowState(StateFlags.ALL))
 
 let greetInputEl: HTMLInputElement | null;
 let greetMsgEl: HTMLElement | null;
