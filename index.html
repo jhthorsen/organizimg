@@ -3,35 +3,183 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="/src/pico.sand@2.min.css" />
-  <link rel="stylesheet" href="/src/styles.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>organizeimg</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-text-size-adjust: 100%;
+
+      --button-color: CanvasText;
+      --button-background: color-mix(in srgb, CanvasText 8%, transparent);
+      --button-border: 1px solid color-mix(in srgb, CanvasText 5%, transparent);
+      --button-hover-background: color-mix(in srgb, CanvasText 15%, transparent);
+      --button-danger-color: white;
+      --button-danger-background: oklch(54% 0.22 29 / 80%);
+      --button-danger-hover-background: oklch(61% 0.22 29 / 100%);
+    }
+
+    @media (prefers-color-scheme: light) {
+      /* todo */
+    }
+
+    html,
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      background: Canvas;
+      color: CanvasText;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      /* prevent rubber band scroll */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      padding: 0 1rem 0.3rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #title {
+      display: flex;
+      flex: 1;
+
+      .path {
+        font-size: 0.85rem;
+        padding-inline: 0.5rem;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        opacity: 0.5;
+      }
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 1rem;
+      background: var(--button-background);
+      color: var(--button-color);
+      padding: 0.3em 0.6em;
+      border: var(--button-border);
+      border-radius: 0.8rem;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--button-hover-background);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.danger {
+      background: var(--button-danger-background);
+      color: var(--button-danger-color);
+    }
+
+    button.danger:hover:not(:disabled) {
+      background: var(--button-danger-hover-background);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+    }
+
+    main.empty {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main.images {
+      flex-direction: row;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+
+      p {
+        display: none;
+      }
+
+      .image {
+        box-sizing: border-box;
+        padding: 1rem;
+        display: flex;
+        flex: 0 0 100vw;
+        align-items: center;
+        justify-content: center;
+        scroll-snap-align: start;
+        transition: all 0.3s ease-in-out;
+      }
+
+      .image img {
+        max-width: 100%;
+        max-height: 100%;
+        margin: 1rem;
+        object-fit: contain;
+      }
+
+      .image.discard {
+        background: oklch(54% 0.22 29 / 18%);
+
+        img {
+          opacity: 0.7;
+        }
+      }
+    }
+
+    .name {
+      background: oklch(20% 0.00 90 / 60%);
+      color: oklch(87% 0.18 91 / 85%);
+      border-radius: 0.5rem;
+      padding: 0.1rem 0.3rem;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      opacity: 0.6;
+      transition: opacity 0.3s ease-in-out;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <nav style="padding:0 1rem">
-    <ul>
-      <li>
-        <a href="#spread" class="secondary" role="button" style="background-color: transparent; border: transparent">
-          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1rem" viewBox="0 0 24 24" stroke-width="2"
-            stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-menu">
-            <path d="M4 6l16 0"></path>
-            <path d="M4 12l16 0"></path>
-            <path d="M4 18l16 0"></path>
-          </svg>
-        </a>
-      </li>
-    </ul>
-    <ul id="title" style="flex:1">
+  <nav>
+    <ul id="title">
       <li>
         <strong>Organizeimg</strong>
         <output class="path"></output>
       </li>
     </ul>
     <ul>
-      <li><button type="button" name="trash" class="danger" disabled>Trash</a></li>
-      <li><button type="button" name="open">Open</a></li>
+      <li><button type="button" name="trash" class="danger" disabled>Trash</button></li>
+      <li><button type="button" name="open">Open</button></li>
     </ul>
   </nav>
   <main class="empty">
