@@ -85,12 +85,8 @@ main.images {
     }
   }
 
-  .keep img {
-    box-shadow: 0 0 0 4px oklch(59% 0.12 165 / 100%);
-  }
-
   .discard img {
-    box-shadow: 0 0 0 4px oklch(54% 0.22 29 / 100%);
+    box-shadow: 0 0 0 3px oklch(54% 0.22 29 / 100%);
   }
 
   .name {

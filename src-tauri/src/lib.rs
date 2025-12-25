@@ -47,6 +47,14 @@ fn get_images(path: String) -> Result<Vec<File>, String> {
     Ok(images)
 }
 
+#[tauri::command]
+fn trash_image(path: &str) -> Result<(), String> {
+    match trash::delete(path) {
+        Err(err) => Err(format!("{path}: {err}")),
+        Ok(_) => Ok(()),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -54,7 +62,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_images])
+        .invoke_handler(tauri::generate_handler![get_images, trash_image])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

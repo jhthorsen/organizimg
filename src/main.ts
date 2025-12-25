@@ -15,26 +15,39 @@ type File = {
 
 type View = {
   imageObserver: IntersectionObserver
+  path: string | null
   $images: HTMLElement[]
   $visibleImage: HTMLElement | null
 }
 
 const $ = (p: Document | HTMLElement, sel: string): HTMLElement | null => p.querySelector(sel)
 const $main = $(document, 'main')!
+const $trashButton = $(document, 'button[name=trash]')! as HTMLButtonElement
 
 const view: View = {
   imageObserver: new IntersectionObserver(onImageIsVisible, {root: $main, threshold: 0.1}),
+  path: null,
   $images: [],
   $visibleImage: null,
 }
 
-$(document, 'a[href$="#delete"]')!.addEventListener(
+$trashButton.addEventListener(
   'click',
   async () => {
+    try {
+      for (const $image of $main.querySelectorAll<HTMLInputElement>('.image.discard')) {
+        await invoke('trash_image', {path: $image.dataset.path})
+        $image.remove()
+      }
+    } catch (err) {
+      displayText(`${err}`)
+    }
+
+    $trashButton.disabled = $main.querySelectorAll('.image.discard').length === 0
   },
 )
 
-$(document, 'a[href$="#open"]')!.addEventListener(
+$(document, 'button[name=open]')!.addEventListener(
   'click',
   async () => {
     const path = await open({
@@ -44,13 +57,14 @@ $(document, 'a[href$="#open"]')!.addEventListener(
     })
 
     $(document, '#title .path')!.textContent = `${path}`
+    view.path = path
     if (!path) return
 
     try {
       const images: File[] = await invoke('get_images', {path})
       displayImages(images)
-    } catch (error) {
-      displayText(`${path}: ${error}`)
+    } catch (err) {
+      displayText(`${path}: ${err}`)
     }
   },
 )
@@ -60,14 +74,26 @@ function displayImages(images: File[]) {
   ;[].map.call($main.querySelectorAll('div.image'), (el: HTMLElement) => el.remove())
 
   if (images.length === 0) {
-    return displayText(`No images found.`)
+    return displayText('No images found.')
   }
 
   images.forEach((image) => {
     const $image = document.createElement('div')
+    $image.dataset.path = image.path
     $image.dataset.src = convertFileSrc(image.path)
     $image.className = 'image'
     $image.innerText = image.path.split('/').pop() || ''
+
+    $image.addEventListener('wheel', (evt) => {
+      if (evt.deltaY > 16) {
+        view.$visibleImage?.classList.add('discard')
+        $trashButton.disabled = $main.querySelectorAll('.image.discard').length === 0
+      } else if (evt.deltaY < -16) {
+        view.$visibleImage?.classList.remove('discard')
+        $trashButton.disabled = $main.querySelectorAll('.image.discard').length === 0
+      }
+    }, {passive: true})
+
     $main.appendChild($image)
     view.$images.push($image)
     view.imageObserver.observe($image)
@@ -105,7 +131,6 @@ function onImageIsVisible(entries: IntersectionObserverEntry[]) {
       }
 
       if (i === idx) {
-        console.log($img)
         $($main, '.name')!.innerText = $img.alt
       }
     })
