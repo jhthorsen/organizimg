@@ -5,9 +5,19 @@ import {message, open} from '@tauri-apps/plugin-dialog'
 import {platform} from '@tauri-apps/plugin-os'
 import {restoreStateCurrent, saveWindowState, StateFlags} from '@tauri-apps/plugin-window-state'
 
+function saveWindowStateWrapper(_evt: any) {
+  if (saveWindowStateWrapper.tid) return
+  saveWindowStateWrapper.tid = setTimeout(() => {
+    saveWindowState(StateFlags.ALL)
+    saveWindowStateWrapper.tid = 0
+  }, 100)
+}
+
+saveWindowStateWrapper.tid = 0
+
 restoreStateCurrent(StateFlags.ALL)
-getCurrentWindow().onCloseRequested(() => saveWindowState(StateFlags.ALL))
-getCurrentWindow().onMoved(() => saveWindowState(StateFlags.ALL))
+getCurrentWindow().onMoved(saveWindowStateWrapper)
+getCurrentWindow().onResized(saveWindowStateWrapper)
 
 type File = {
   path: string
@@ -215,7 +225,9 @@ class Organizeimg {
     } else if (evt.key === '?') {
       this.$root.classList.toggle('help')
     } else if (evt.key === 'z') {
-      const n = this.findAllImages('.image.discard').map(($image) => this._displayImage($image)).length
+      const n = this.findAllImages('.image.discard').map(($image) =>
+        this._displayImage($image)
+      ).length
       this.setView(n > 0 ? 'discarded' : 'images', 'images')
     }
   }
