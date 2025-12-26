@@ -14,6 +14,10 @@
       -moz-osx-font-smoothing: grayscale;
       -webkit-text-size-adjust: 100%;
 
+      --base-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      --base-background: Canvas;
+      --base-color: CanvasText;
+      --monospace-font: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
       --button-color: CanvasText;
       --button-background: color-mix(in srgb, CanvasText 8%, transparent);
       --button-border: 1px solid color-mix(in srgb, CanvasText 5%, transparent);
@@ -21,6 +25,8 @@
       --button-danger-color: white;
       --button-danger-background: oklch(47% 0.19 29 / 100%);
       --button-danger-hover-background: oklch(61% 0.22 29 / 100%);
+      --kbd-background: color-mix(in srgb, CanvasText 5%, Canvas);
+      --kbd-border: color-mix(in srgb, CanvasText 15%, Canvas);
     }
 
     @media (prefers-color-scheme: light) {
@@ -29,11 +35,11 @@
 
     html,
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-family: var(--base-font);
       font-size: 16px;
       line-height: 1.5;
-      background: Canvas;
-      color: CanvasText;
+      background: var(--base-background);
+      color: var(--base-color);
       margin: 0;
       padding: 0;
       height: 100vh;
@@ -41,6 +47,21 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+    }
+
+    kbd {
+      font-family: var(--monospace-font);
+      display: inline-block;
+      padding: 0 0.5em;
+      margin: 0.2rem;
+      font-size: 0.95em;
+      background: var(--kbd-background);
+      border-radius: 6px;
+      box-shadow: 0 1px 0 var(--kbd-border);
+      vertical-align: middle;
+      margin: 0 0.1em;
+      line-height: 1.4;
+      user-select: none;
     }
 
     nav {
@@ -103,6 +124,11 @@
       background: var(--button-danger-hover-background);
     }
 
+    ul.shortcuts {
+      list-style: none;
+      margin: 2rem 1rem;
+    }
+
     main {
       flex: 1;
       display: flex;
@@ -112,6 +138,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+
     }
 
     main.images {
@@ -119,7 +146,8 @@
       overflow-x: auto;
       scroll-snap-type: x mandatory;
 
-      p {
+      p,
+      ul.shortcuts {
         display: none;
       }
 
@@ -185,6 +213,13 @@
   </nav>
   <main class="empty">
     <p>No directory selected.</p>
+    <ul class="shortcuts">
+      <li><kbd>o</kbd>, <kbd>Ctrl+O</kbd>, <kbd>⌘O</kbd>: Open directory</li>
+      <li><kbd>→</kbd>, <kbd>l</kbd>: Next image</li>
+      <li><kbd>←</kbd>, <kbd>h</kbd>: Previous image</li>
+      <li><kbd>Backspace</kbd>, <kbd>d</kbd>: Mark/unmark image for trash</li>
+      <li><kbd>Ctrl+Backspace</kbd>, <kbd>⌘Backspace</kbd>: Trash marked images</li>
+    </ul>
     <span class="name"></span>
   </main>
   <script type="module" src="/src/main.ts"></script>
