@@ -145,7 +145,7 @@
       li {
         display: flex;
 
-        > span {
+        >span {
           padding-right: var(--gap);
           flex: 1;
         }
@@ -164,15 +164,18 @@
 
     }
 
+    main.discarded,
     main.images {
-      flex-direction: row;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-
       p,
       ul.shortcuts {
         display: none;
       }
+    }
+
+    main.images {
+      flex-direction: row;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
 
       .image {
         box-sizing: border-box;
@@ -182,7 +185,7 @@
         align-items: center;
         justify-content: center;
         scroll-snap-align: start;
-        transition: all 0.3s ease-in-out;
+        transition: background 0.3s ease-in-out;
       }
 
       .image img {
@@ -199,6 +202,25 @@
       }
     }
 
+    main.discarded {
+      overflow: auto;
+      max-width: 100vw;
+      padding: var(--gap);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--gap);
+
+      .image:not(.discard) {
+        display: none;
+      }
+
+      img {
+        max-width: calc(100% - var(--gap) * 2);
+        max-height: none;
+      }
+    }
+
+    main.discarded.help,
     main.images.help {
       ul.shortcuts {
         background: color-mix(in srgb, Canvas 95%, transparent);
@@ -230,6 +252,10 @@
         opacity: 1;
       }
     }
+
+    [hidden] {
+      display: none !important;
+    }
   </style>
 </head>
 
@@ -249,12 +275,15 @@
   <main class="empty">
     <p>No directory selected.</p>
     <ul class="shortcuts">
-      <li><span>Show help:</span> <kbd>?</kbd></li>
-      <li><span>Open directory:</span> <kbd>o</kbd> or <kbd hidden="macos">Ctrl+o</kbd><kbd hidden="not-macos">⌘<span class="pull-up">o</span></kbd></li>
+      <li><span>Toggle help:</span> <kbd>?</kbd></li>
+      <li><span>Open directory:</span> <kbd>o</kbd> or <kbd hidden="macos">Ctrl+o</kbd><kbd hidden="not-macos">⌘<span
+            class="pull-up">o</span></kbd></li>
       <li><span>Next image:</span> <kbd>→</kbd> or <kbd>l</kbd></li>
       <li><span>Previous image:</span> <kbd>←</kbd> or <kbd>h</kbd></li>
       <li><span>Mark/unmark image for trash:</span> <kbd><b>⌫</b></kbd> or <kbd>d</kbd></li>
-      <li><span>Trash marked images:</span> <kbd hidden="macos">Ctrl+<b>⌫</b></kbd><kbd hidden="not-macos"><b>⌘⌫</b></kbd></li>
+      <li><span>Trash marked images:</span> <kbd hidden="macos">Ctrl+<b>⌫</b></kbd><kbd
+          hidden="not-macos"><b>⌘⌫</b></kbd></li>
+      <li><span>Toggle overview:</span> <kbd>z</kbd></li>
     </ul>
     <span class="name"></span>
   </main>

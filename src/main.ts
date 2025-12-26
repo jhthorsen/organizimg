@@ -31,7 +31,6 @@ class Organizeimg {
   }
 
   displayImages(images: File[]) {
-    this.$root.classList.remove('help')
     ;[].map.call(this.$root.querySelectorAll('div.image'), (el: HTMLElement) => el.remove())
 
     if (images.length === 0) {
@@ -48,18 +47,21 @@ class Organizeimg {
       this.imageObserver.observe($image)
     })
 
-    this.$root.classList.remove('empty')
-    this.$root.classList.add('images')
+    this.$root.scrollTo(0, 0)
+    this.setView('images')
   }
 
   displayMessage(message: string) {
     $(this.$root, 'p')!.textContent = message
-    this.$root.classList.remove('images')
-    this.$root.classList.add('empty')
+    this.setView('empty')
   }
 
-  findAllImages() {
-    return Array.from(this.$root.querySelectorAll<HTMLElement>('.image'))
+  findAllImages(sel = '.image') {
+    return Array.from(this.$root.querySelectorAll<HTMLElement>(sel))
+  }
+
+  isView(className: string) {
+    return this.$root.classList.contains(className)
   }
 
   async openDirectory(path: string | null) {
@@ -83,12 +85,29 @@ class Organizeimg {
     }
   }
 
+  setView(className: string, alternative: string | null = null) {
+    const cl = this.$root.classList
+    for (const view of ['discarded', 'empty', 'help', 'images']) {
+      if (className !== view) cl.remove(view)
+    }
+
+    if (cl.contains(className) && alternative !== null) {
+      cl.remove(className)
+      cl.add(alternative)
+    } else {
+      cl.add(className)
+    }
+  }
+
   showImage(idx: number | string) {
+    const options: ScrollIntoViewOptions = {block: 'nearest', inline: 'start'}
     switch (idx) {
       case 'previous':
+        options.behavior = 'smooth'
         idx = this.findAllImages().indexOf(this.$visibleImage as HTMLElement) - 1
         break
       case 'next':
+        options.behavior = 'smooth'
         idx = this.findAllImages().indexOf(this.$visibleImage as HTMLElement) + 1
         break
       default:
@@ -99,14 +118,14 @@ class Organizeimg {
     if (idx < 0) idx = $images.length - 1
     if (idx >= $images.length) idx = 0
     this.$visibleImage = $images[idx]
-    this.$visibleImage?.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'start'})
+    this.$visibleImage?.scrollIntoView(options)
   }
 
   async trashImages() {
-    const $discard = this.$root.querySelectorAll<HTMLInputElement>('.image.discard')
-    if ($discard.length === 0) return
+    const $discarded = this.findAllImages('.image.discard')
+    if ($discarded.length === 0) return
 
-    const answer = await message(`Delete ${$discard.length} images?`, {
+    const answer = await message(`Delete ${$discarded.length} images?`, {
       title: 'Confirm Deletion',
       kind: 'error',
       buttons: 'OkCancel',
@@ -114,7 +133,7 @@ class Organizeimg {
 
     if (answer.toLowerCase() === 'ok') {
       try {
-        for (const $image of $discard) {
+        for (const $image of $discarded) {
           await invoke('trash_image', {path: $image.dataset.path})
           $image.remove()
         }
@@ -127,6 +146,8 @@ class Organizeimg {
   }
 
   _onImageIntersectChange(entries: IntersectionObserverEntry[]) {
+    if (!this.isView('images')) return
+
     for (const entry of entries) {
       if (!entry.isIntersecting) continue
       this.$visibleImage = entry.target as HTMLElement
@@ -137,13 +158,7 @@ class Organizeimg {
         let $img = $image.firstElementChild as HTMLImageElement
 
         if (i >= idx - 2 && i <= idx + 3) {
-          if (!$img) {
-            $img = document.createElement('img')
-            $img.alt = $image.textContent!.trim()
-            $img.src = $image.dataset.src ?? ''
-            $image.innerText = ''
-            $image.appendChild($img)
-          }
+          $img = this._displayImage($image)
         } else if ($img) {
           $image.innerText = $img.alt
         }
@@ -157,14 +172,41 @@ class Organizeimg {
     }
   }
 
+  _displayImage($image: HTMLElement) {
+    console.log($image)
+    let $img = $image.firstElementChild as HTMLImageElement
+    if ($img && $img.tagName === 'IMG') return $img
+
+    $img = document.createElement('img')
+    $img.alt = $image.textContent!.trim()
+    $img.src = $image.dataset.src ?? ''
+
+    $img.addEventListener('click', () => {
+      this.setView('images')
+      this.showImage(this.findAllImages().indexOf($img.parentNode as HTMLElement))
+    })
+
+    $image.innerText = ''
+    $image.appendChild($img)
+    return $img
+  }
+
   _onKeyDown(evt: KeyboardEvent) {
-    if (evt.key === 'ArrowRight' || evt.key === 'l') {
-      this.showImage('next')
-      evt.preventDefault()
-    } else if (evt.key === 'ArrowLeft' || evt.key === 'h') {
-      this.showImage('previous')
-      evt.preventDefault()
-    } else if (((evt.ctrlKey || evt.metaKey) && evt.key === 'o') || evt.key === 'o') {
+    if (this.isView('images')) {
+      if (evt.key === 'ArrowRight' || evt.key === 'l') {
+        this.showImage('next')
+        evt.preventDefault()
+      } else if (evt.key === 'ArrowLeft' || evt.key === 'h') {
+        this.showImage('previous')
+        evt.preventDefault()
+      } else if (evt.key === 'Backspace' || evt.key === 'd') {
+        this.$visibleImage?.classList.toggle('discard')
+        this._toggleTrashButtonDisabled()
+        evt.preventDefault()
+      }
+    }
+
+    if (((evt.ctrlKey || evt.metaKey) && evt.key === 'o') || evt.key === 'o') {
       this.openDirectory(null)
       evt.preventDefault()
     } else if ((evt.ctrlKey || evt.metaKey) && evt.key === 'Backspace') {
@@ -172,16 +214,15 @@ class Organizeimg {
       evt.preventDefault()
     } else if (evt.key === '?') {
       this.$root.classList.toggle('help')
-    } else if (evt.key === 'Backspace' || evt.key === 'd') {
-      this.$visibleImage?.classList.toggle('discard')
-      this._toggleTrashButtonDisabled()
-      evt.preventDefault()
+    } else if (evt.key === 'z') {
+      const n = this.findAllImages('.image.discard').map(($image) => this._displayImage($image)).length
+      this.setView(n > 0 ? 'discarded' : 'images', 'images')
     }
   }
 
   _toggleTrashButtonDisabled() {
     const $btn = $(document, 'button[name=trash]')! as HTMLButtonElement
-    $btn.disabled = this.$root.querySelectorAll('.image.discard').length === 0
+    $btn.disabled = this.findAllImages('.image.discard').length === 0
   }
 }
 
