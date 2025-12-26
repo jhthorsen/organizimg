@@ -156,28 +156,21 @@ class Organizeimg {
 
   _onKeyDown(evt: KeyboardEvent) {
     if (evt.key === 'ArrowRight' || evt.key === 'l') {
-      evt.preventDefault()
       this.showImage('next')
+      evt.preventDefault()
     } else if (evt.key === 'ArrowLeft' || evt.key === 'h') {
-      evt.preventDefault()
       this.showImage('previous')
-    } else if ((evt.ctrlKey || evt.metaKey) && evt.key === 'o') {
       evt.preventDefault()
+    } else if (((evt.ctrlKey || evt.metaKey) && evt.key === 'o') || evt.key === 'o') {
       this.openDirectory(null)
-    } else if (evt.key === 'o') {
       evt.preventDefault()
-      this.openDirectory(null)
-    } else if (evt.key === 'Backspace' || evt.key === 'd') {
-      evt.preventDefault()
+    } else if ((evt.ctrlKey || evt.metaKey) && evt.key === 'Backspace') {
       this.trashImages()
-    } else if (evt.key === 'ArrowDown' || evt.key === 'j') {
       evt.preventDefault()
-      this.$visibleImage?.classList.add('discard')
+    } else if (evt.key === 'Backspace' || evt.key === 'd') {
+      this.$visibleImage?.classList.toggle('discard')
       this._toggleTrashButtonDisabled()
-    } else if (evt.key === 'ArrowUp' || evt.key === 'k') {
       evt.preventDefault()
-      this.$visibleImage?.classList.remove('discard')
-      this._toggleTrashButtonDisabled()
     }
   }
 
