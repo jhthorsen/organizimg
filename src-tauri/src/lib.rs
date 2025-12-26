@@ -35,7 +35,7 @@ fn get_images(path: String) -> Result<Vec<File>, String> {
             continue;
         };
 
-        if EXTENSIONS.contains(&extension.to_str().unwrap()) {
+        if EXTENSIONS.contains(&extension.to_str().unwrap().to_lowercase().as_str()) {
             images.push(File {
                 path: entry.to_string_lossy().to_string(),
                 size: metadata.size(),
