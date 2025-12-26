@@ -4,6 +4,7 @@
     "npm:@tauri-apps/api@2": "2.9.1",
     "npm:@tauri-apps/cli@2": "2.9.6",
     "npm:@tauri-apps/plugin-dialog@2": "2.4.2",
+    "npm:@tauri-apps/plugin-os@~2.3.2": "2.3.2",
     "npm:@tauri-apps/plugin-window-state@~2.4.1": "2.4.1",
     "npm:typescript@~5.6.2": "5.6.3",
     "npm:vite@^6.0.3": "6.4.1_picomatch@4.0.3"
@@ -330,8 +331,8 @@
         "@tauri-apps/api"
       ]
     },
-    "@tauri-apps/plugin-opener@2.5.2": {
-      "integrity": "sha512-ei/yRRoCklWHImwpCcDK3VhNXx+QXM9793aQ64YxpqVF0BDuuIlXhZgiAkc15wnPVav+IbkYhmDJIv5R326Mew==",
+    "@tauri-apps/plugin-os@2.3.2": {
+      "integrity": "sha512-n+nXWeuSeF9wcEsSPmRnBEGrRgOy6jjkSU+UVCOV8YUGKb2erhDOxis7IqRXiRVHhY8XMKks00BJ0OAdkpf6+A==",
       "dependencies": [
         "@tauri-apps/api"
       ]
@@ -478,6 +479,7 @@
         "npm:@tauri-apps/api@2",
         "npm:@tauri-apps/cli@2",
         "npm:@tauri-apps/plugin-dialog@2",
+        "npm:@tauri-apps/plugin-os@~2.3.2",
         "npm:@tauri-apps/plugin-window-state@~2.4.1",
         "npm:typescript@~5.6.2",
         "npm:vite@^6.0.3"

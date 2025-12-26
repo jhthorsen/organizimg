@@ -2,6 +2,7 @@ import {convertFileSrc} from '@tauri-apps/api/core'
 import {getCurrentWindow} from '@tauri-apps/api/window'
 import {invoke} from '@tauri-apps/api/core'
 import {message, open} from '@tauri-apps/plugin-dialog'
+import {platform} from '@tauri-apps/plugin-os'
 import {restoreStateCurrent, saveWindowState, StateFlags} from '@tauri-apps/plugin-window-state'
 
 restoreStateCurrent(StateFlags.ALL)
@@ -30,6 +31,7 @@ class Organizeimg {
   }
 
   displayImages(images: File[]) {
+    this.$root.classList.remove('help')
     ;[].map.call(this.$root.querySelectorAll('div.image'), (el: HTMLElement) => el.remove())
 
     if (images.length === 0) {
@@ -73,6 +75,7 @@ class Organizeimg {
 
     if (path.length > 0) {
       try {
+        this.displayMessage(`${path}`)
         this.displayImages(await invoke('get_images', {path}))
       } catch (err) {
         this.displayMessage(`${path}: ${err}`)
@@ -167,6 +170,8 @@ class Organizeimg {
     } else if ((evt.ctrlKey || evt.metaKey) && evt.key === 'Backspace') {
       this.trashImages()
       evt.preventDefault()
+    } else if (evt.key === '?') {
+      this.$root.classList.toggle('help')
     } else if (evt.key === 'Backspace' || evt.key === 'd') {
       this.$visibleImage?.classList.toggle('discard')
       this._toggleTrashButtonDisabled()
@@ -184,3 +189,10 @@ const organizeimg = new Organizeimg($(document, 'main')!)
 window.addEventListener('keydown', (evt) => organizeimg._onKeyDown(evt))
 $(document, 'button[name=trash]')!.addEventListener('click', () => organizeimg.trashImages())
 $(document, 'button[name=open]')!.addEventListener('click', () => organizeimg.openDirectory(null))
+;[].map.call(document.querySelectorAll('[hidden*="macos"]'), (el: HTMLElement) => {
+  if (el.getAttribute('hidden') === platform()) {
+    el.remove()
+  } else {
+    el.removeAttribute('hidden')
+  }
+})

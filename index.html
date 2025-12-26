@@ -14,10 +14,10 @@
       -moz-osx-font-smoothing: grayscale;
       -webkit-text-size-adjust: 100%;
 
+      --gap: 1rem;
       --base-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       --base-background: Canvas;
       --base-color: CanvasText;
-      --monospace-font: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
       --button-color: CanvasText;
       --button-background: color-mix(in srgb, CanvasText 8%, transparent);
       --button-border: 1px solid color-mix(in srgb, CanvasText 5%, transparent);
@@ -25,7 +25,7 @@
       --button-danger-color: white;
       --button-danger-background: oklch(47% 0.19 29 / 100%);
       --button-danger-hover-background: oklch(61% 0.22 29 / 100%);
-      --kbd-background: color-mix(in srgb, CanvasText 5%, Canvas);
+      --kbd-background: color-mix(in srgb, Canvas 90%, CanvasText);
       --kbd-border: color-mix(in srgb, CanvasText 15%, Canvas);
     }
 
@@ -50,25 +50,34 @@
     }
 
     kbd {
-      font-family: var(--monospace-font);
-      display: inline-block;
-      padding: 0 0.5em;
-      margin: 0.2rem;
-      font-size: 0.95em;
-      background: var(--kbd-background);
-      border-radius: 6px;
-      box-shadow: 0 1px 0 var(--kbd-border);
-      vertical-align: middle;
-      margin: 0 0.1em;
+      font-family: 'SF Symbols', 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+      font-size: 0.9em;
       line-height: 1.4;
+      border: 1px solid var(--base-background);
+      background: var(--kbd-background);
+      padding: 0.1em 0.3em;
+      margin: 0 0.2em;
+      border-radius: 6px;
+      vertical-align: middle;
+      display: inline-block;
       user-select: none;
+
+      b {
+        font-weight: normal;
+        zoom: 1.2;
+      }
+
+      .pull-up {
+        position: relative;
+        top: -1px;
+      }
     }
 
     nav {
-      padding: 0 1rem 0.3rem 1rem;
+      padding: 0 var(--gap) 0.3rem var(--gap);
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: var(--gap);
     }
 
     nav ul {
@@ -130,7 +139,17 @@
 
     ul.shortcuts {
       list-style: none;
-      margin: 2rem 1rem;
+      margin: calc(var(--gap) * 3);
+      padding: 0;
+
+      li {
+        display: flex;
+
+        > span {
+          padding-right: var(--gap);
+          flex: 1;
+        }
+      }
     }
 
     main {
@@ -157,7 +176,7 @@
 
       .image {
         box-sizing: border-box;
-        padding: 1rem;
+        padding: var(--gap);
         display: flex;
         flex: 0 0 100vw;
         align-items: center;
@@ -167,7 +186,7 @@
       }
 
       .image img {
-        margin: 1rem;
+        margin: var(--gap);
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
@@ -177,6 +196,21 @@
       .image.discard {
         background: oklch(54% 0.22 29 / 18%);
         box-shadow: inset 0 0 100px 1px oklch(54% 0.22 29 / 0.4);
+      }
+    }
+
+    main.images.help {
+      ul.shortcuts {
+        background: color-mix(in srgb, Canvas 95%, transparent);
+        box-shadow: 0 0 200px 100px Canvas;
+        padding: calc(var(--gap) * 3);
+        border-radius: var(--gap);
+        display: initial;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
       }
     }
 
@@ -215,11 +249,12 @@
   <main class="empty">
     <p>No directory selected.</p>
     <ul class="shortcuts">
-      <li><kbd>o</kbd>, <kbd>Ctrl+O</kbd>, <kbd>⌘O</kbd>: Open directory</li>
-      <li><kbd>→</kbd>, <kbd>l</kbd>: Next image</li>
-      <li><kbd>←</kbd>, <kbd>h</kbd>: Previous image</li>
-      <li><kbd>Backspace</kbd>, <kbd>d</kbd>: Mark/unmark image for trash</li>
-      <li><kbd>Ctrl+Backspace</kbd>, <kbd>⌘Backspace</kbd>: Trash marked images</li>
+      <li><span>Show help:</span> <kbd>?</kbd></li>
+      <li><span>Open directory:</span> <kbd>o</kbd> or <kbd hidden="macos">Ctrl+o</kbd><kbd hidden="not-macos">⌘<span class="pull-up">o</span></kbd></li>
+      <li><span>Next image:</span> <kbd>→</kbd> or <kbd>l</kbd></li>
+      <li><span>Previous image:</span> <kbd>←</kbd> or <kbd>h</kbd></li>
+      <li><span>Mark/unmark image for trash:</span> <kbd><b>⌫</b></kbd> or <kbd>d</kbd></li>
+      <li><span>Trash marked images:</span> <kbd hidden="macos">Ctrl+<b>⌫</b></kbd><kbd hidden="not-macos"><b>⌘⌫</b></kbd></li>
     </ul>
     <span class="name"></span>
   </main>
